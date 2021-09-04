@@ -1,0 +1,49 @@
+# docker-compose.yml
+version: '3'
+
+services:
+
+  # MySQL database
+  db:
+    image: mariadb
+    restart: unless-stopped
+    container_name: tdd-plugin-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    volumes:
+      - db-data:/var/lib/mysql
+
+  # Wordpress
+  wp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    container_name: tdd-plugin-app
+    environment:
+      WORDPRESS_DB_HOST: tdd-plugin-db
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DEBUG: 1
+    volumes:
+      - wp-data:/var/www/html
+      - ./:/var/www/html/wp-content/plugins/wordpress-tdd-plugin
+    ports:
+      - 8080:80
+    depends_on:
+      - db
+
+# Make network name pretty
+networks:
+  default:
+    name: tdd-plugin-network
+
+# Persist DB and WordPress data across containers
+volumes:
+  db-data:
+  wp-data:
+
