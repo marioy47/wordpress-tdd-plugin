@@ -1,7 +1,7 @@
 # Dockerfile
 FROM wordpress
 
-ARG PLUGIN_NAME=wordpres-tdd-plugin
+ARG PLUGIN_NAME=wordpress-tdd-plugin
 
 # Setup the OS
 RUN apt-get -qq update ; apt-get -y install unzip curl sudo subversion mariadb-client \
@@ -25,3 +25,10 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
 	&& chmod ugo+x /usr/local/bin/composer \
 	&& echo "*** composer command installed"
 
+# Create testing environment
+COPY --chmod=755 bin/install-wp-tests.sh /usr/local/bin/
+RUN echo "#!/bin/bash" > /usr/local/bin/install-wp-tests \
+        && echo "su www-data -c \"install-wp-tests.sh \${WORDPRESS_DB_NAME}_test root root \${WORDPRESS_DB_HOST} latest\"" >> /usr/local/bin/install-wp-tests \
+        && chmod ugo+x /usr/local/bin/install-wp-test* \
+        && su www-data -c "/usr/local/bin/install-wp-tests.sh ${WORDPRESS_DB_NAME}_test root root '' latest true" \
+        && echo "*** install-wp-tests installed"
